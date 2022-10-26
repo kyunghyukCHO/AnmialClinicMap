@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <script type="text/javascript"
+        src="https://openapi.map.naver.com/openapi/v3/maps.js?ncpClientId=3vzalur7cs&amp;submodules=geocoder"></script>
+    <script src="https://code.jquery.com/jquery-3.6.1.min.js"
+        integrity="sha256-o88AwQnZB+VDvE9tvIXrMQaPlFFSUTR+nldQm1LuPXQ=" crossorigin="anonymous"></script>
+    <meta charset="UTF-8">
+    <title>animal hospital</title>
+</head>
+
+<body>
+    <div style="margin-top:20px; margin-bottom:10px; font-weight: bold; font-size: 30px;">인천광역시 미추홀구 동물병원 및 동물약국 지도</div>
+    <div id="map" style="width:100ex; height:80ex"></div>
+</body>
+<script>
+    $(document).ready(async () => {
+        new Promise( (succ, fail)=>{
+            $.ajax({
+                url: "/Veterinary_list",
+                type: "GET",
+                cache: false,
+                dataType: "json",
+                data: { "pageNo": "1", "numOfRows": "30", "type": "JSON" }
+                ,
+                success: (data) => {
+                    console.log(data);
+                    var mapDiv = document.getElementById('map'); // 'map'으로 선언해도 동일
+                    var mapOptions = {
+                        center: new naver.maps.LatLng(37.456177414614, 126.644219932369),   //중심을 인천미추홀구로 설정
+                        zoom: 13
+                    }
+                    var map = new naver.maps.Map(mapDiv, mapOptions);
+    
+                    data.items.item.forEach((it, index) => {
+                        let hospitalName = it.bsn_nm;          //동물병원명
+                        let hospitalAddr = "";    //도로명주소
+                        let hospitalTell = "";         //전화번호
+
+                        hospitalAddr += "주소 : " + it.road_nm_addr
+                        if (it.tel_no){
+                            hospitalTell += "전화번호 : " + it.tel_no;
+                        } else {
+                            hospitalTell += "전화번호 : (없음)";
+                        }
+                        
+    
+                        var hospital_location = new naver.maps.LatLng(it.lat, it.lot),   //동물병원의 위도경도 입력
+    
+                        marker = new naver.maps.Marker({
+                                map: map, 
+                                position: hospital_location,      //동물병원 마커 설정
+                                icon: {
+                                    url: 'https://user-images.githubusercontent.com/92010711/197989728-f571f3a9-219c-4ee5-8217-de505c563e15.png',
+                                    size: new naver.maps.Size(50, 50),
+                                    origin: new naver.maps.Point(0, 0),
+                                    anchor: new naver.maps.Point(11, 35)
+                                }
+                            });
+    
+                        var contentString = [
+                            '<div class="iw_inner">',
+                            '   <h3>'+hospitalName+'</h3>',
+                            '   <p>'+hospitalAddr+'<br />',
+                            '      '+hospitalTell+'<br />',
+                            '   </p>',
+                            '</div>'
+                        ].join('');
+                        
+                        //info 디자인
+                        var infowindow = new naver.maps.InfoWindow({
+                            content: contentString,
+                            maxWidth: 900,
+                            backgroundColor: "#eee",
+                            borderColor: "#2db400",
+                            borderWidth: 4,
+                            anchorSize: new naver.maps.Size(30,30),
+                            anchorSkew: true,
+                            anchorColor: "#eee",
+                            pixelOffset: new naver.maps.Point(20,-20)
+                        });
+    
+                        naver.maps.Event.addListener(marker, "click", function (e) {
+                            if (infowindow.getMap()) {
+                                infowindow.close();
+                            } else {
+                                infowindow.open(map, marker);
+                            }
+                        });
+    
+                        infowindow.open(map, marker);
+                    })   
+                    $.ajax({ 
+                        url: "/Pharmacy_list",
+                        type: "GET",
+                        cache: false,
+                        dataType: "json",
+                        data: { "pageNo": "1", "numOfRows": "80", "type": "JSON" }
+                        ,
+                        success: (data) => {
+                            console.log(data);
+                            data.items.item.forEach((it, index) => {
+                                let pharmacyName = it.fc_nm;          //동물약국명
+                                let pharmacyAddr = "";    //도로명주소
+                                let pharmacyTell = "";         //전화번호
+
+                                pharmacyAddr += "주소 : " + it.road_nm_addr;
+                                if (it.tel_no) {
+                                    pharmacyTell += "전화번호 : " + it.tel_no;
+                                } else {
+                                    pharmacyTell += "전화번호 : (없음)";
+                                }
+                                
+
+            
+                                var pharmacy_location = new naver.maps.LatLng(it.lat, it.lot),   //동물약국의 위도경도 입력
+        
+
+                                marker = new naver.maps.Marker({
+                                        map: map,
+                                        position: pharmacy_location,      //동물약국 마커 설정
+                                        icon: {
+                                            url: 'https://user-images.githubusercontent.com/92010711/197990034-66c38a09-714c-43d6-9e34-6b5f745f5c6c.png',
+                                            size: new naver.maps.Size(50, 50),
+                                            origin: new naver.maps.Point(0, 0),
+                                            anchor: new naver.maps.Point(11, 35)
+                                        }
+                                    });
+                                
+                                
+                                var contentString = [
+                                    '<div class="iw_inner">',
+                                    '   <h3>'+pharmacyName+'</h3>',
+                                    '   <p>'+pharmacyAddr+'<br />',
+                                    '      '+pharmacyTell+'<br />',
+                                    '   </p>',
+                                    '</div>'
+                                ].join('');
+                                
+                                //info 디자인
+                                var infowindow = new naver.maps.InfoWindow({
+                                    content: contentString,
+                                    maxWidth: 900,
+                                    backgroundColor: "#eee",
+                                    borderColor: "#0009b4",
+                                    borderWidth: 4,
+                                    anchorSize: new naver.maps.Size(30,30),
+                                    anchorSkew: true,
+                                    anchorColor: "#eee",
+                                    pixelOffset: new naver.maps.Point(20,-20)
+                                });
+            
+                                naver.maps.Event.addListener(marker, "click", function (e) {
+                                    if (infowindow.getMap()) {
+                                        infowindow.close();
+                                    } else {
+                                        infowindow.open(map, marker);
+                                    }
+                                });
+            
+                                infowindow.open(map, marker);
+            
+            
+                            })
+                        },
+                        error: (request, status, error) => {
+                            console.log(request.error);
+                            console.log(request.status);
+                            console.log(request.responseText);
+                        }
+                    })           
+                },
+                error: (request, status, error) => {
+                    console.log(request.error);
+                    console.log(request.status);
+                    console.log(request.responseText);
+                }
+            })
+
+        });
+    });
+
+    
+    
+
+    async function getLocation() {
+        let XY = new Object();
+        if (navigator.geolocation) {
+
+            let promise = new Promise((resolve, rejected) => {
+                navigator.geolocation.getCurrentPosition((position) => {
+                    resolve(position);
+                });
+            });
+
+            let position = await promise;
+            XY.lng = position.coords.longitude //경도
+            XY.lat = position.coords.latitude //위도
+        }
+        return XY;
+    }
+</script>
+
+</html>
